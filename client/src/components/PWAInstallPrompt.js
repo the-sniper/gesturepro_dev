@@ -1,7 +1,7 @@
 "use client";
-import { useState, useEffect } from 'react';
-import { Box, Button, IconButton, Typography } from '@mui/material';
-import { Download, Close, PhoneIphone } from '@mui/icons-material';
+import { useState, useEffect } from "react";
+import { Box, Button, IconButton, Typography } from "@mui/material";
+import { Download, Close, PhoneIphone } from "@mui/icons-material";
 
 export default function PWAInstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
@@ -17,32 +17,33 @@ export default function PWAInstallPrompt() {
     const handleAppInstalled = () => {
       setShowInstallBanner(false);
       setDeferredPrompt(null);
-      console.log('PWA was installed');
+      console.log("PWA was installed");
     };
 
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      setShowInstallBanner(false);
-    } else {
-      window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-      window.addEventListener('appinstalled', handleAppInstalled);
+    if (!window.matchMedia("(display-mode: standalone)").matches) {
+      window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+      window.addEventListener("appinstalled", handleAppInstalled);
     }
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-      window.removeEventListener('appinstalled', handleAppInstalled);
+      window.removeEventListener(
+        "beforeinstallprompt",
+        handleBeforeInstallPrompt,
+      );
+      window.removeEventListener("appinstalled", handleAppInstalled);
     };
   }, []);
 
   useEffect(() => {
     if (showInstallBanner) {
-      document.body.style.paddingTop = '70px';
-      document.body.style.transition = 'padding-top 0.3s ease-out';
+      document.body.style.paddingTop = "70px";
+      document.body.style.transition = "padding-top 0.3s ease-out";
     } else {
-      document.body.style.paddingTop = '0px';
+      document.body.style.paddingTop = "0px";
     }
 
     return () => {
-      document.body.style.paddingTop = '0px';
+      document.body.style.paddingTop = "0px";
     };
   }, [showInstallBanner]);
 
@@ -53,10 +54,10 @@ export default function PWAInstallPrompt() {
 
     const { outcome } = await deferredPrompt.userChoice;
 
-    if (outcome === 'accepted') {
-      console.log('User accepted the install prompt');
+    if (outcome === "accepted") {
+      console.log("User accepted the install prompt");
     } else {
-      console.log('User dismissed the install prompt');
+      console.log("User dismissed the install prompt");
     }
 
     setDeferredPrompt(null);
@@ -65,7 +66,7 @@ export default function PWAInstallPrompt() {
 
   const handleDismiss = () => {
     setShowInstallBanner(false);
-    localStorage.setItem('pwa-install-dismissed', Date.now().toString());
+    localStorage.setItem("pwa-install-dismissed", Date.now().toString());
   };
 
   if (!showInstallBanner) {
@@ -75,26 +76,26 @@ export default function PWAInstallPrompt() {
   return (
     <Box
       sx={{
-        position: 'fixed',
+        position: "fixed",
         top: 0,
         left: 0,
         right: 0,
         zIndex: 1100,
-        background: 'linear-gradient(135deg, #3359C6 0%, #2847A3 100%)',
-        color: 'white',
-        padding: '12px 16px',
-        display: 'flex',
-        alignItems: 'center',
+        background: "linear-gradient(135deg, #3359C6 0%, #2847A3 100%)",
+        color: "white",
+        padding: "12px 16px",
+        display: "flex",
+        alignItems: "center",
         gap: 2,
-        boxShadow: '0 2px 12px rgba(51, 89, 198, 0.3)',
-        animation: 'slideDown 0.3s ease-out',
-        '@keyframes slideDown': {
+        boxShadow: "0 2px 12px rgba(51, 89, 198, 0.3)",
+        animation: "slideDown 0.3s ease-out",
+        "@keyframes slideDown": {
           from: {
-            transform: 'translateY(-100%)',
+            transform: "translateY(-100%)",
             opacity: 0,
           },
           to: {
-            transform: 'translateY(0)',
+            transform: "translateY(0)",
             opacity: 1,
           },
         },
@@ -102,36 +103,36 @@ export default function PWAInstallPrompt() {
     >
       <Box
         sx={{
-          backgroundColor: 'rgba(255, 255, 255, 0.2)',
-          borderRadius: '8px',
-          padding: '8px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          backgroundColor: "rgba(255, 255, 255, 0.2)",
+          borderRadius: "8px",
+          padding: "8px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
         <PhoneIphone sx={{ fontSize: 20 }} />
       </Box>
 
       <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Typography 
-          variant="subtitle2" 
-          sx={{ 
-            fontWeight: 600, 
-            fontSize: '14px',
+        <Typography
+          variant="subtitle2"
+          sx={{
+            fontWeight: 600,
+            fontSize: "14px",
             lineHeight: 1.2,
-            marginBottom: '2px'
+            marginBottom: "2px",
           }}
         >
           Install GesturePro
         </Typography>
-        <Typography 
-          variant="caption" 
-          sx={{ 
+        <Typography
+          variant="caption"
+          sx={{
             opacity: 0.9,
-            fontSize: '12px',
+            fontSize: "12px",
             lineHeight: 1,
-            display: 'inline-block'
+            display: "inline-block",
           }}
         >
           Get the full app experience.
@@ -144,17 +145,17 @@ export default function PWAInstallPrompt() {
         size="small"
         startIcon={<Download sx={{ fontSize: 16 }} />}
         sx={{
-          backgroundColor: 'rgba(255, 255, 255, 0.2)',
-          color: 'white',
-          fontSize: '12px',
+          backgroundColor: "rgba(255, 255, 255, 0.2)",
+          color: "white",
+          fontSize: "12px",
           fontWeight: 600,
-          borderRadius: '20px',
-          padding: '6px 12px',
-          minWidth: 'auto',
-          backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(255, 255, 255, 0.3)',
-          '&:hover': {
-            backgroundColor: 'rgba(255, 255, 255, 0.3)',
+          borderRadius: "20px",
+          padding: "6px 12px",
+          minWidth: "auto",
+          backdropFilter: "blur(10px)",
+          border: "1px solid rgba(255, 255, 255, 0.3)",
+          "&:hover": {
+            backgroundColor: "rgba(255, 255, 255, 0.3)",
           },
         }}
       >
@@ -165,12 +166,12 @@ export default function PWAInstallPrompt() {
         onClick={handleDismiss}
         size="small"
         sx={{
-          color: 'white',
+          color: "white",
           opacity: 0.8,
-          padding: '4px',
-          '&:hover': {
+          padding: "4px",
+          "&:hover": {
             opacity: 1,
-            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+            backgroundColor: "rgba(255, 255, 255, 0.1)",
           },
         }}
       >
@@ -178,4 +179,4 @@ export default function PWAInstallPrompt() {
       </IconButton>
     </Box>
   );
-} 
+}

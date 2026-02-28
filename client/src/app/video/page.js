@@ -2,7 +2,7 @@
 import { useRef, useState, useContext, useCallback, useEffect } from "react";
 import { Button } from "@mui/material";
 import Webcam from "react-webcam";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 import styles from "./page.module.css";
 import VideoTranslationContext from "../context/videoTranslation/videoTranslationContext";
 import SnackbarContext from "../context/snackbar/snackbarContext";
@@ -41,15 +41,20 @@ export default function GPVideo() {
     };
     checkMobile();
 
-    setIsSecureContext(window.isSecureContext);
-
-    setSessionId(uuidv4());
-
     return () => {
       if (captureInterval.current) {
         clearInterval(captureInterval.current);
       }
     };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setTimeout(() => {
+        setIsSecureContext(window.isSecureContext);
+        setSessionId(uuidv4());
+      }, 0);
+    }
   }, []);
 
   const videoConstraints = {
@@ -83,10 +88,10 @@ export default function GPVideo() {
       setCameraError(errorMessage);
       setIsCameraOn(false);
     },
-    [isSecureContext]
+    [isSecureContext],
   );
 
-  const captureFrame = async () => {
+  const captureFrame = useCallback(async () => {
     if (!webcamRef.current || !webcamRef.current.video) return;
 
     const video = webcamRef.current.video;
@@ -110,28 +115,46 @@ export default function GPVideo() {
         showSnackbar("Failed to fetch tokens. Please try again!", "error");
       }
     }, "image/jpeg");
-  };
+  }, [sessionId, showSnackbar, startPredictingWordTokens]);
 
   useEffect(() => {
     console.log("VideoTranscript changed:", videoTranscript);
     if (videoTranscript) {
-      if (videoTranscript.sentence_info && videoTranscript.sentence_info.sentence) {
-        console.log("Predicted sentence:", videoTranscript.sentence_info.sentence);
-        setPredictedText(videoTranscript.sentence_info.sentence === "no_detection" ? "" : videoTranscript.sentence_info.sentence);
+      if (
+        videoTranscript.sentence_info &&
+        videoTranscript.sentence_info.sentence
+      ) {
+        console.log(
+          "Predicted sentence:",
+          videoTranscript.sentence_info.sentence,
+        );
+        setTimeout(() => {
+          setPredictedText(
+            videoTranscript.sentence_info.sentence === "no_detection"
+              ? ""
+              : videoTranscript.sentence_info.sentence,
+          );
+        }, 0);
       } else if (videoTranscript.predicted_class) {
         console.log("Predicted class:", videoTranscript.predicted_class);
-        setPredictedText(videoTranscript.predicted_class === "no_detection" ? "" : videoTranscript.predicted_class);
+        setTimeout(() => {
+          setPredictedText(
+            videoTranscript.predicted_class === "no_detection"
+              ? ""
+              : videoTranscript.predicted_class,
+          );
+        }, 0);
       } else {
         console.log("No valid detection or videoTranscript structure changed");
-        setPredictedText("");
+        setTimeout(() => setPredictedText(""), 0);
       }
     } else {
       console.log("VideoTranscript is null");
-      setPredictedText("");
+      setTimeout(() => setPredictedText(""), 0);
     }
   }, [videoTranscript]);
 
-  const handleStartCapture = () => {
+  const handleStartCapture = useCallback(() => {
     setIsCapturing(true);
 
     if (captureInterval.current) {
@@ -139,9 +162,9 @@ export default function GPVideo() {
     }
 
     captureInterval.current = setInterval(captureFrame, 1500);
-  };
+  }, [captureFrame]);
 
-  const handleStopCapture = async () => {
+  const handleStopCapture = useCallback(async () => {
     setIsCapturing(false);
 
     if (captureInterval.current) {
@@ -159,7 +182,7 @@ export default function GPVideo() {
     } catch (error) {
       console.error("Error resetting capture:", error);
     }
-  };
+  }, [endPredictingWordTokens, clearSessionSentence, sessionId, clearResponse]);
 
   const toggleCamera = useCallback(() => {
     setCameraError(null);
@@ -182,7 +205,13 @@ export default function GPVideo() {
       setIsCameraOn(true);
       handleStartCapture();
     }
-  }, [isSecureContext, isCameraOn, isCapturing]);
+  }, [
+    isSecureContext,
+    isCameraOn,
+    isCapturing,
+    handleStartCapture,
+    handleStopCapture,
+  ]);
 
   const speakText = (text) => {
     if ("speechSynthesis" in window) {
