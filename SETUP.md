@@ -1,6 +1,5 @@
 # GesturePro Developer Setup Guide
 
-
 ## 📁 Project Structure
 
 ```
@@ -19,13 +18,11 @@ gesturepro/
 └── README.md
 ```
 
-
 ## ✅ Prerequisites
 
-- [Docker & Docker Compose](https://www.docker.com/products/docker-desktop) 
+- [Docker & Docker Compose](https://www.docker.com/products/docker-desktop)
 - [Node.js](https://nodejs.org/en/download) v22.15.1 (for manual frontend development)
 - [Python](https://www.python.org/downloads/) 3.11+ (for manual backend development)
-
 
 ## 🔐 Environment Variables
 
@@ -53,97 +50,102 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
 > ⚠️ Do not commit `.env` to version control if it contains secrets.  
 > ✅ The backend and database use the same credentials for seamless Docker Compose integration.
 
-
 ## ⚙️ Backend Setup (FastAPI + PostgreSQL)
 
 ### 🐳 Running with Docker (Recommended)
+
 Handled automatically by Docker Compose (see below).
 
 ### 🧪 Running Manually (Development)
 
 1. **Install dependencies**
-    ```bash
-    cd server
-    python -m venv venv
-    source venv/bin/activate
-    pip install -r requirements.txt
-    ```
+
+   ```bash
+   cd server
+   python -m venv venv
+   source venv/bin/activate
+   pip install -r requirements.txt
+   ```
 
 2. **Set environment variables**
-    Use the `.env` file or manually export them.
+   Use the `.env` file or manually export them.
 
 3. **Create tables**
-    Tables are auto-created at app startup (no need for Alembic during development).
+   Tables are auto-created at app startup (no need for Alembic during development).
 
 4. **Run the backend**
-    ```bash
-    uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-    ```
-
+   ```bash
+   uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+   ```
 
 ## 🌐 Frontend Setup (Next.js)
 
 ### 🐳 Running with Docker (Recommended)
+
 Handled automatically by Docker Compose.
 
 ### 🧪 Running Manually (Development)
 
 1. **Install dependencies**
-    ```bash
-    cd client
-    npm install
-    ```
+
+   ```bash
+   cd client
+   npm install
+   ```
 
 2. **Set environment variables**
-    Ensure `NEXT_PUBLIC_API_URL` is set in `.env.local` or `.env`.
+   Ensure `NEXT_PUBLIC_API_URL` is set in `.env.local` or `.env`.
 
 3. **Run the frontend**
-    ```bash
-    npm run dev
-    ```
+
+   ```bash
+   npm run dev
+   ```
 
 4. **Access app**  
    [http://localhost:3000](http://localhost:3000)
 
-
 ## 🧩 Running with Docker Compose (Recommended Full Setup)
 
 1. **Build and start all services**
-    ```bash
-    docker-compose up --build -d
-    ```
+
+   ```bash
+   docker-compose up --build -d
+   ```
 
 2. **Access the applications:**
-    - Frontend: http://localhost:3000
-    - Backend (Swagger docs): http://localhost:8000/docs
-    - PostgreSQL: Exposed on port `5432`
+   - Frontend: http://localhost:3000
+   - Backend (Swagger docs): http://localhost:8000/docs
+   - PostgreSQL: Exposed on port `5432`
 
 3. **Stop services**
-    ```bash
-    docker-compose down
-    ```
-
+   ```bash
+   docker-compose down
+   ```
 
 ## 🛠️ Common Issues & Troubleshooting
 
 ### 🔄 Database connection errors
+
 - Ensure `DB_*` vars match `POSTGRES_*`
 - Confirm `db` service is healthy
 
 ### ❌ Table does not exist
+
 - Backend auto-creates tables
 - If schema changes, try removing volume:
-    ```bash
-    docker-compose down -v
-    ```
+  ```bash
+  docker-compose down -v
+  ```
 
 ### 🌍 CORS errors
-- The backend allows `http://localhost:3000` by default  
+
+- The backend allows `http://localhost:3000` by default
 - Modify `allow_origins` in `main.py` if needed
 
 ### 🔗 Frontend can’t reach backend
-- Ensure `NEXT_PUBLIC_API_URL` is correctly set to `http://localhost:8000`
 
+- Ensure `NEXT_PUBLIC_API_URL` is correctly set to `http://localhost:8000`
 
 ## 💡 Development Tips
 
@@ -152,3 +154,34 @@ Handled automatically by Docker Compose.
 - **Health checks**: Docker Compose waits for healthy DB/backend before starting others.
 - **New environment variables**: Update both `.env` and `docker-compose.yml` accordingly.
 
+## 🚀 Deployment (Fly.io)
+
+The backend and database are deployed to [Fly.io](https://fly.io) in the `ewr` region.
+
+**Live API URL**: `https://gesturepro-api.fly.dev`
+
+### Architecture
+
+- **App**: `gesturepro-api` (1GB RAM machine to handle YOLO model loading)
+- **Database**: Unmanaged Fly Postgres (`gesturepro-db`), automatically attached. Fly.io handles injecting the `DATABASE_URL` secret.
+- **Docker Image**: Uses `server/Dockerfile.fly` with CPU-only PyTorch and headless OpenCV (`requirements.prod.txt`) to keep the image size to ~569MB. Models are baked directly into the image.
+
+### Connecting the Frontend in Production
+
+Update the `.env.local` or Next.js environment config to point to the live backend:
+
+```env
+NEXT_PUBLIC_API_URL=https://gesturepro-api.fly.dev
+```
+
+### How to Deploy Updates
+
+1. **Prerequisite**: Ensure you have `flyctl` installed and are authenticated.
+   ```bash
+   flyctl auth login
+   ```
+2. **Deploy**: The deployment configuration is already defined in `fly.toml`.
+   ```bash
+   flyctl deploy --app gesturepro-api
+   ```
+   > _Note: Builds are heavily cached via Depot, so repeated deploys usually take just seconds._
